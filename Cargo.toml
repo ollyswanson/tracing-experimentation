@@ -1,0 +1,17 @@
+[package]
+name = "tracing-experiment"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "1"
+serde_json = "1"
+tracing = { version = "0.1", default-features = false }
+tracing-core = "0.1"
+tracing-serde = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "fmt", "smallvec"] }
+
+[dev-dependencies]
+tracing = { version = "0.1.13", default-features = false, features = ["log", "std", "attributes"] }
