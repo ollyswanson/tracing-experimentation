@@ -6,8 +6,8 @@ use serde_json::Value;
 use tracing::{info, span};
 use tracing_core::Level;
 use tracing_experiment::compat_layer::CompatLayer;
+use tracing_experiment::fmt::json::JsonFormatter;
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::Registry;
 
 use crate::mock_writer::MockWriter;
 
@@ -20,8 +20,8 @@ fn run_and_get_raw_output<F: Fn()>(action: F) -> String {
         move || MockWriter::new(buffer.clone())
     };
 
-    let subscriber = Registry::default().with(CompatLayer::new(String::from("test"), make_writer));
-
+    let subscriber =
+        tracing_subscriber::registry().with(CompatLayer::new(JsonFormatter::new(), make_writer));
     tracing::subscriber::with_default(subscriber, action);
 
     let buffer_guard = buffer.lock().unwrap();
@@ -43,7 +43,7 @@ fn test_action() {
     let span = span!(Level::DEBUG, "shaving_yaks", a);
     let _enter = span.enter();
 
-    info!("pre-shaving yaks");
+    info!(message = "pre-shaving yaks");
     let b = 3;
     let skipped = false;
     let new_span = span!(Level::DEBUG, "inner shaving", b, skipped);
@@ -53,10 +53,16 @@ fn test_action() {
 }
 
 #[test]
-fn it_works() {
+fn each_line_is_valid_json() {
     let tracing_output = run_and_get_raw_output(test_action);
 
+    // Each line is valid JSON
     for line in tracing_output.lines().filter(|&l| !l.is_empty()) {
-        println!("{line}");
+        assert!(serde_json::from_str::<Value>(line).is_ok());
     }
+}
+
+#[test]
+fn see_output() {
+    let _output = run_and_get_output(test_action);
 }

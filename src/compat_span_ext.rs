@@ -15,6 +15,7 @@ impl CompatSpanExt for Span {
             if let Some(get_context) = dispatch.downcast_ref::<WithContext>() {
                 get_context.with_context(dispatch, id, |storage| {
                     val = storage.fields().get(key).map(|v| T::from(v.clone()));
+                    val.is_some()
                 })
             }
         });
