@@ -2,6 +2,7 @@ pub mod json;
 
 use std::fmt;
 use std::io;
+use std::time::Duration;
 
 use tracing_core::{Event, Subscriber};
 use tracing_subscriber::layer::Context;

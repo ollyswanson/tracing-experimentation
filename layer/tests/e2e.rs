@@ -2,11 +2,11 @@ mod mock_writer;
 
 use std::sync::{Arc, Mutex};
 
+use layer::compat_layer::CompatLayer;
+use layer::fmt::json::JsonFormatter;
 use serde_json::Value;
 use tracing::{info, span};
 use tracing_core::Level;
-use tracing_experiment::compat_layer::CompatLayer;
-use tracing_experiment::fmt::json::JsonFormatter;
 use tracing_subscriber::layer::SubscriberExt;
 
 use crate::mock_writer::MockWriter;
