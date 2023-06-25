@@ -6,6 +6,7 @@ mod tracing;
 
 #[tokio::main]
 async fn main() {
-    setup_tracing();
+    let use_otel = std::env::var("USE_OTEL").is_ok();
+    setup_tracing(use_otel);
     run::run().await.unwrap();
 }

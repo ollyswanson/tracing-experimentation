@@ -15,7 +15,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     let app = Router::new().route("/", get(get_cat)).with_state(app_state);
 
-    let addr = "127.0.0.1:8080".parse().unwrap();
+    let addr = "0.0.0.0:8080".parse().unwrap();
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
