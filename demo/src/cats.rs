@@ -6,7 +6,7 @@ use axum::response::{Html, IntoResponse, Response};
 use bytes::Bytes;
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::Instrument;
+use tracing::Span;
 
 use crate::run::AppState;
 
@@ -25,14 +25,17 @@ pub async fn get_cat(State(state): State<Arc<AppState>>) -> Result<Html<String>,
         e
     })?;
 
-    let ascii_cat = tokio::task::spawn_blocking(move || asciify(raw_image))
-        .instrument(tracing::info_span!("asciifying cat"))
-        .await
-        .unwrap()
-        .map_err(|e| {
-            tracing::error!(message = "Failed to process image", error = ?e);
-            e
-        })?;
+    let current_span = Span::current();
+    let ascii_cat = tokio::task::spawn_blocking(move || {
+        let _enter = current_span.enter();
+        asciify(raw_image)
+    })
+    .await
+    .unwrap()
+    .map_err(|e| {
+        tracing::error!(message = "Failed to process image", error = ?e);
+        e
+    })?;
 
     Ok(Html(ascii_cat))
 }
@@ -72,6 +75,7 @@ async fn get_image(client: &reqwest::Client, url: &str) -> anyhow::Result<Bytes>
         .map_err(|e| e.into())
 }
 
+#[tracing::instrument("asciifying_cat", skip(bytes))]
 fn asciify(bytes: Bytes) -> anyhow::Result<String> {
     let image = image::load_from_memory(&bytes).map_err(|e| anyhow::anyhow!(e))?;
 

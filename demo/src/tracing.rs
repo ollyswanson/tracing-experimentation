@@ -5,11 +5,11 @@ use tracing::subscriber::set_global_default;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
-pub fn setup_tracing(use_otel: bool) {
+pub fn setup_tracing(use_otel: bool, show_spans: bool) {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("INFO"));
     let subscriber = Registry::default()
         .with(env_filter)
-        .with(CompatLayer::new(JsonFormatter::new(), std::io::stdout));
+        .with(CompatLayer::new(JsonFormatter::new(), std::io::stdout).with_spans(show_spans));
 
     if use_otel {
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
