@@ -1,0 +1,21 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1"
+artem = { version = "1.1.7", default-features = false }
+axum = "0.6.18"
+bytes = "1.4.0"
+image = "0.24.6"
+layer = { path = "../layer" }
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.4", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
