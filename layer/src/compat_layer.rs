@@ -20,6 +20,7 @@ pub struct CompatLayer<S, F, W> {
     formatter: F,
     get_context: WithContext,
     make_writer: W,
+    with_spans: bool,
     _registry: marker::PhantomData<S>,
 }
 
@@ -56,8 +57,14 @@ where
             formatter,
             get_context: WithContext(Self::get_context),
             make_writer,
+            with_spans: false,
             _registry: marker::PhantomData,
         }
+    }
+
+    pub fn with_spans(mut self, with_spans: bool) -> Self {
+        self.with_spans = with_spans;
+        self
     }
 
     fn get_context(dispatch: &Dispatch, id: &Id, f: &mut dyn FnMut(&Visitor) -> bool) {
@@ -194,28 +201,33 @@ where
         if first_entry {
             extensions.insert(InstantWrapper(Instant::now()));
 
-            with_event_from_span!(id, span, "message" = "start", |event| {
-                drop(extensions);
-                drop(span);
-                self.on_event(&event, ctx);
-            });
+            if self.with_spans {
+                // We also make use of the first span entry to "log" the start.
+                with_event_from_span!(id, span, "message" = "start", |event| {
+                    drop(extensions);
+                    drop(span);
+                    self.on_event(&event, ctx);
+                });
+            }
         }
     }
 
     fn on_close(&self, id: Id, ctx: Context<'_, S>) {
-        let span = ctx.span(&id).expect("Span not found, this is a bug");
-        let start = span
-            .extensions()
-            .get::<InstantWrapper>()
-            .map(|i| i.0)
-            .expect("Start not found, this is a bug");
+        if self.with_spans {
+            let span = ctx.span(&id).expect("Span not found, this is a bug");
+            let start = span
+                .extensions()
+                .get::<InstantWrapper>()
+                .map(|i| i.0)
+                .expect("Start not found, this is a bug");
 
-        let elapsed = crate::fmt::format_duration(start.elapsed());
+            let elapsed = crate::fmt::format_duration(start.elapsed());
 
-        with_event_from_span!(id, span, "message" = "end", "elapsed" = elapsed, |event| {
-            drop(span);
-            self.on_event(&event, ctx);
-        });
+            with_event_from_span!(id, span, "message" = "end", "elapsed" = elapsed, |event| {
+                drop(span);
+                self.on_event(&event, ctx);
+            });
+        }
     }
 
     fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {

@@ -20,8 +20,8 @@ fn run_and_get_raw_output<F: Fn()>(action: F) -> String {
         move || MockWriter::new(buffer.clone())
     };
 
-    let subscriber =
-        tracing_subscriber::registry().with(CompatLayer::new(JsonFormatter::new(), make_writer));
+    let subscriber = tracing_subscriber::registry()
+        .with(CompatLayer::new(JsonFormatter::new(), make_writer).with_spans(true));
     tracing::subscriber::with_default(subscriber, action);
 
     let buffer_guard = buffer.lock().unwrap();
