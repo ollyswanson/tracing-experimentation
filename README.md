@@ -41,6 +41,7 @@ jaeger.
 ## TODO
 
 - [ ] Document the implementation of `Layer` better so that it can be used as a teaching device.
+- [ ] Sentry integration
 - [ ] Try implementing `FormatEvent` instead of a whole `Layer` to reduce surface area of the code
   that we will need to maintain (albeit temporarily).
 - [ ] Try using OTEL collector instead of sending UDP packets directly to Jaeger.
