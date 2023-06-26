@@ -14,6 +14,8 @@ pub fn setup_tracing(use_otel: bool, show_spans: bool) {
     if use_otel {
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
 
+        // This should be using the bulk pipeline + tokio runtime features but it's easier to demo
+        // traces if they show up instantaneously.
         let tracer = opentelemetry_jaeger::new_agent_pipeline()
             .with_service_name("cats")
             .install_simple()
